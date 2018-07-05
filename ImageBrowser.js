@@ -1,26 +1,23 @@
 import React from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  CameraRoll,
-  FlatList,
-  Dimensions,
-  Button
-} from 'react-native';
+import { StyleSheet, Text, View, CameraRoll, FlatList, Dimensions, Button } from 'react-native';
 import { FileSystem } from 'expo';
+import PropTypes from 'prop-types';
+
 import ImageTile from './ImageTile';
+
 const { width } = Dimensions.get('window')
 
 export default class ImageBrowser extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      photos: [],
-      selected: [],
-      after: null,
-      has_next_page: true
-    }
+  static propTypes = {
+    max: PropTypes.number.isRequired,
+    callback: PropTypes.func.isRequired,
+  };
+
+  state = {
+    photos: [],
+    selected: [],
+    after: null,
+    has_next_page: true,
   }
 
   componentDidMount() {
@@ -37,7 +34,7 @@ export default class ImageBrowser extends React.Component {
         ...selected.slice(position + 1, selected.length),
       ];
     } else {
-      newSelected = [...selected, i];
+      newSelected = [ ...selected, i ];
     }
 
     if (newSelected.length > this.props.max) {
@@ -47,7 +44,7 @@ export default class ImageBrowser extends React.Component {
   }
 
   getPhotos = () => {
-    let params = { first: 50, mimeTypes: ['image/jpeg'] };
+    let params = { first: 50, assetType: 'Photos', base64: true };
     if (this.state.after) params.after = this.state.after
     if (!this.state.has_next_page) return
     CameraRoll
@@ -58,15 +55,16 @@ export default class ImageBrowser extends React.Component {
   processPhotos = (r) => {
     if (this.state.after === r.page_info.end_cursor) return;
     let uris = r.edges.map(i=> i.node).map(i=> i.image).map(i=>i.uri)
+    console.log(r)
     this.setState({
-      photos: [...this.state.photos, ...uris],
+      photos: [ ...this.state.photos, ...uris ],
       after: r.page_info.end_cursor,
-      has_next_page: r.page_info.has_next_page
+      has_next_page: r.page_info.has_next_page,
     });
   }
 
   getItemLayout = (data,index) => {
-    let length = width/4;
+    let length = width / 4;
     return { length, offset: length * index, index }
   }
 
@@ -76,12 +74,12 @@ export default class ImageBrowser extends React.Component {
       return(selected.indexOf(index) !== -1)
     });
     let files = selectedPhotos
-      .map(i => FileSystem.getInfoAsync(i, {md5: true}))
+      .map(i => FileSystem.getInfoAsync(i, { md5: true }))
     let callbackResult = Promise
       .all(files)
       .then(imageData=> {
         return imageData.map((data, i) => {
-          return {file: selectedPhotos[i], ...data}
+          return { file: selectedPhotos[ i ], ...data }
         })
       })
     this.props.callback(callbackResult)
@@ -105,7 +103,7 @@ export default class ImageBrowser extends React.Component {
       </View>
     )
   }
-  renderImageTile = ({item, index}) => {
+  renderImageTile = ({ item, index }) => {
     let selected = this.state.selected.indexOf(index) !== -1;
     return(
       <ImageTile
@@ -154,6 +152,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 10,
-    marginTop: 20
+    marginTop: 20,
   },
 })

@@ -1,15 +1,18 @@
 import React from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  Dimensions,
-  Image,
-  TouchableOpacity,
-} from 'react-native';
-const { width } = Dimensions.get('window')
+import { Text, View, Dimensions, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import PropTypes from 'prop-types';
 
-class ImageTile extends React.PureComponent {
+const { width } = Dimensions.get('window');
+
+export default class ImageTile extends React.PureComponent {
+  static propTypes = {
+    index: PropTypes.number.isRequired,
+    item: PropTypes.string.isRequired,
+    selected: PropTypes.bool.isRequired,
+    selectImage: PropTypes.func.isRequired,
+    stt: PropTypes.number.isRequired,
+  };
+
   render() {
     let { item, index, selected, selectImage, stt } = this.props;
     if (!item) return null;
@@ -18,14 +21,35 @@ class ImageTile extends React.PureComponent {
         onPress={() => selectImage(index)}
       >
         <Image
-          style={{width: width/4, height: width/4}}
-          source={{uri: item}}
+          style={{ width: width / 4, height: width / 4 }}
+          source={{ uri: item }}
         />
         {selected &&
-          <Text>{stt}</Text>
+          <View style={styles.numberWrapper}></View>
+        }
+        {selected &&
+          <View style={StyleSheet.absoluteFill}>
+            <Text style={styles.numberText}>{stt + 1}</Text>
+          </View>
         }
       </TouchableOpacity>
     )
   }
 }
-export default ImageTile;
+
+const styles = StyleSheet.create({
+  numberWrapper: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'white',
+    opacity: 0.5,
+  },
+  numberText: {
+    position: 'absolute',
+    bottom: 10,
+    right: 10,
+    fontSize: 28,
+    fontWeight: 'bold',
+    fontFamily: 'font',
+    color: '#F8A1B9',
+  },
+})
