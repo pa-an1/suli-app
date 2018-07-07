@@ -1,6 +1,7 @@
 import React from 'react';
-import { CameraRoll, ActivityIndicator, Text, View, Button } from 'react-native';
+import { CameraRoll, ActivityIndicator, Text, View, Button, Alert, Platform } from 'react-native';
 import { StyleSheet } from 'react-native';
+import { Notifications, Permissions } from 'expo';
 
 import ImageBrowser from './ImageBrowser';
 import { httpPostFormData } from './services/http-requests';
@@ -8,14 +9,46 @@ import config from './config';
 
 const READY = 0;
 const LOADING = 1;
-const ERROR = 2
-const SUCCESS = 3
+const ERROR = 2;
+const SUCCESS = 3;
+
+async function getiOSNotificationPermission() {
+  const { status } = await Permissions.getAsync(
+    Permissions.NOTIFICATIONS
+  );
+  if (status !== 'granted') {
+    await Permissions.askAsync(Permissions.NOTIFICATIONS);
+  }
+}
 
 export default class App extends React.Component {
   state = {
     errMsg: '',
     status: READY,
   }
+
+  componentWillMount() {
+    getiOSNotificationPermission();
+    this._listenForNotifications();
+  }
+
+  _pushNotification = () => {
+    const localNotification = {
+      title: 'Đánh số xong!',
+      body: 'Đánh số cho hình xong rồi nhé, hình ở trong album đó hehe!!',
+      android: { sound: true },
+      ios: { sound: true },
+    };
+    Notifications.presentLocalNotificationAsync(localNotification);
+  };
+
+  _listenForNotifications = () => {
+    Notifications.addListener(notification => {
+      if (notification.origin === 'received' && Platform.OS === 'ios') {
+        Alert.alert(notification.title, notification.body);
+      }
+    });
+  };
 
   _formData = (uri) => {
     return {
@@ -48,6 +81,7 @@ export default class App extends React.Component {
         return Promise.all(promises);
       })
       .then(() => {
+        this._pushNotification();
         this.setState({ status: SUCCESS });
       })
       .catch((e) => {
