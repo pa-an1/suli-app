@@ -1,5 +1,5 @@
 import React from 'react';
-import { CameraRoll, ActivityIndicator, Text, View, Button, Alert, Platform } from 'react-native';
+import { CameraRoll, ActivityIndicator, Text, View, Button } from 'react-native';
 import { StyleSheet } from 'react-native';
 import { Notifications, Permissions } from 'expo';
 
@@ -29,7 +29,6 @@ export default class App extends React.Component {
 
   componentWillMount() {
     getiOSNotificationPermission();
-    this._listenForNotifications();
   }
 
   _pushNotification = () => {
@@ -40,14 +39,6 @@ export default class App extends React.Component {
       ios: { sound: true },
     };
     Notifications.presentLocalNotificationAsync(localNotification);
-  };
-
-  _listenForNotifications = () => {
-    Notifications.addListener(notification => {
-      if (notification.origin === 'received' && Platform.OS === 'ios') {
-        Alert.alert(notification.title, notification.body);
-      }
-    });
   };
 
   _formData = (uri) => {
