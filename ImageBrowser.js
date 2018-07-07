@@ -55,7 +55,6 @@ export default class ImageBrowser extends React.Component {
   processPhotos = (r) => {
     if (this.state.after === r.page_info.end_cursor) return;
     let uris = r.edges.map(i=> i.node).map(i=> i.image).map(i=>i.uri)
-    console.log(r)
     this.setState({
       photos: [ ...this.state.photos, ...uris ],
       after: r.page_info.end_cursor,
@@ -91,10 +90,6 @@ export default class ImageBrowser extends React.Component {
     if (selectedCount === this.props.max) headerText = headerText + ' (Max)';
     return (
       <View style={styles.header}>
-        <Button
-          title="Exit"
-          onPress={() => this.props.callback(Promise.resolve([]))}
-        />
         <Text>{headerText}</Text>
         <Button
           title="Choose"
