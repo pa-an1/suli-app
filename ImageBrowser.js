@@ -10,6 +10,7 @@ export default class ImageBrowser extends React.Component {
   static propTypes = {
     max: PropTypes.number.isRequired,
     callback: PropTypes.func.isRequired,
+    onRefresh: PropTypes.func.isRequired,
   };
 
   state = {
@@ -85,9 +86,13 @@ export default class ImageBrowser extends React.Component {
     if (selectedCount === this.props.max) headerText = headerText + ' (Max)';
     return (
       <View style={styles.header}>
+        <Button
+          title="Refresh"
+          onPress={this.props.onRefresh}
+        />
         <Text>{headerText}</Text>
         <Button
-          title="Choose"
+          title="Gửi"
           onPress={() => this.prepareCallback()}
         />
       </View>

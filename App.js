@@ -1,5 +1,5 @@
 import React from 'react';
-import { CameraRoll, ActivityIndicator, Text, View, Button, ScrollView } from 'react-native';
+import { CameraRoll, ActivityIndicator, Text, View, Button, ScrollView, Alert } from 'react-native';
 import { StyleSheet } from 'react-native';
 import { Notifications, Permissions } from 'expo';
 
@@ -40,7 +40,7 @@ export default class App extends React.Component {
     };
     Notifications.presentLocalNotificationAsync(localNotification);
   };
-  
+
   _uploadImage = (uris) => {
     const formData = new FormData();
     for (let i = 0; i < uris.length; i++) {
@@ -56,6 +56,10 @@ export default class App extends React.Component {
   };
 
   _imageBrowserCallback = (uris) => {
+    if (uris.length === 0) {
+      Alert.alert('Nhấn vào hình để chọn nhé');
+      return;
+    }
     this.setState({ status: LOADING });
     this._uploadImage(uris)
       .then(result => {
@@ -81,11 +85,21 @@ export default class App extends React.Component {
       })
   }
 
+  _handleOnRefresh = () => {
+    this.setState({ status: SUCCESS }, () => {
+      this.setState({ status: READY });
+    });
+  }
+
   render() {
     let body;
     switch (this.state.status) {
       case READY:
-        body = <ImageBrowser max={9} callback={this._imageBrowserCallback}/>;
+        body = <ImageBrowser
+          max={9}
+          callback={this._imageBrowserCallback}
+          onRefresh={this._handleOnRefresh}
+        />;
         break;
       case LOADING:
         body = <ActivityIndicator />
