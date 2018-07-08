@@ -29,6 +29,7 @@ export default class App extends React.Component {
 
   componentWillMount() {
     getiOSNotificationPermission();
+    fetch(config.SERVER_URL + 'mark');
   }
 
   _pushNotification = () => {
