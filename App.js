@@ -1,5 +1,5 @@
 import React from 'react';
-import { CameraRoll, ActivityIndicator, Text, View, Button } from 'react-native';
+import { CameraRoll, ActivityIndicator, Text, View, Button, ScrollView } from 'react-native';
 import { StyleSheet } from 'react-native';
 import { Notifications, Permissions } from 'expo';
 
@@ -41,10 +41,11 @@ export default class App extends React.Component {
     Notifications.presentLocalNotificationAsync(localNotification);
   };
 
-  _formData = (uri) => {
+  _formData = (uri, stt) => {
     return {
       uri,
       type: 'image/jpeg',
+      name: stt + '.jpg',
     }
   }
 
@@ -52,7 +53,8 @@ export default class App extends React.Component {
     const formData = new FormData();
     for (let i = 0; i < photos.length; i++) {
       const uri = photos[ i ].uri || photos[ i ].file;
-      formData.append('upload[]', this._formData(uri), i + '.jpg');
+      const stt = i + 1;
+      formData.append('upload[]', this._formData(uri, stt), stt + '.jpg');
     }
     return httpPostFormData(formData)
   };
@@ -64,6 +66,9 @@ export default class App extends React.Component {
         return this._uploadImage(photos);
       })
       .then(result => {
+        if (result.links === '') {
+          return Promise.reject('No Result');
+        }
         const urls = result.links.split(',');
         const promises = [];
         for (var i = 0; i < urls.length; i++) {
@@ -93,7 +98,7 @@ export default class App extends React.Component {
         body = <ActivityIndicator />
         break;
       case ERROR:
-        body = <Text>{this.state.errMsg}</Text>
+        body = <ScrollView><Text>{this.state.errMsg}</Text></ScrollView>
         break;
       case SUCCESS:
         body = <Button
