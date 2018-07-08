@@ -1,6 +1,5 @@
 import React from 'react';
 import { StyleSheet, Text, View, CameraRoll, FlatList, Dimensions, Button } from 'react-native';
-import { FileSystem } from 'expo';
 import PropTypes from 'prop-types';
 
 import ImageTile from './ImageTile';
@@ -72,16 +71,12 @@ export default class ImageBrowser extends React.Component {
     let selectedPhotos = photos.filter((item, index) => {
       return(selected.indexOf(index) !== -1)
     });
-    let files = selectedPhotos
-      .map(i => FileSystem.getInfoAsync(i, { md5: true }))
-    let callbackResult = Promise
-      .all(files)
-      .then(imageData=> {
-        return imageData.map((data, i) => {
-          return { file: selectedPhotos[ i ], ...data }
-        })
-      })
-    this.props.callback(callbackResult)
+    selectedPhotos.sort((a, b) => {
+      const indexA = photos.indexOf(a);
+      const indexB = photos.indexOf(b);
+      return selected.indexOf(indexA) - selected.indexOf(indexB);
+    })
+    this.props.callback(selectedPhotos)
   }
 
   renderHeader = () => {

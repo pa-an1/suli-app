@@ -40,31 +40,24 @@ export default class App extends React.Component {
     };
     Notifications.presentLocalNotificationAsync(localNotification);
   };
-
-  _formData = (uri, stt) => {
-    return {
-      uri,
-      type: 'image/jpeg',
-      name: stt + '.jpg',
-    }
-  }
-
-  _uploadImage = (photos) => {
+  
+  _uploadImage = (uris) => {
     const formData = new FormData();
-    for (let i = 0; i < photos.length; i++) {
-      const uri = photos[ i ].uri || photos[ i ].file;
+    for (let i = 0; i < uris.length; i++) {
       const stt = i + 1;
-      formData.append('upload[]', this._formData(uri, stt), stt + '.jpg');
+      const data = {
+        uri: uris[ i ],
+        type: 'image/jpeg',
+        name: stt + '.jpg',
+      };
+      formData.append('upload[]', data, stt + '.jpg');
     }
     return httpPostFormData(formData)
   };
 
-  _imageBrowserCallback = (callback) => {
-    callback
-      .then(photos => {
-        this.setState({ status: LOADING });
-        return this._uploadImage(photos);
-      })
+  _imageBrowserCallback = (uris) => {
+    this.setState({ status: LOADING });
+    this._uploadImage(uris)
       .then(result => {
         if (result.links === '') {
           return Promise.reject('No Result');
