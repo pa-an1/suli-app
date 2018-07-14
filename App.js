@@ -1,7 +1,7 @@
 import React from 'react';
 import { CameraRoll, ActivityIndicator, Text, View, Button, ScrollView, Alert } from 'react-native';
 import { StyleSheet } from 'react-native';
-import { Notifications, Permissions } from 'expo';
+import { KeepAwake, ImagePicker, Notifications, Permissions, Constants } from 'expo';
 
 import ImageBrowser from './ImageBrowser';
 import { httpPostFormData } from './services/http-requests';
@@ -12,12 +12,15 @@ const LOADING = 1;
 const ERROR = 2;
 const SUCCESS = 3;
 
-async function getiOSNotificationPermission() {
-  const { status } = await Permissions.getAsync(
-    Permissions.NOTIFICATIONS
-  );
-  if (status !== 'granted') {
-    await Permissions.askAsync(Permissions.NOTIFICATIONS);
+async function getPermission() {
+  const results = await Promise.all([
+    Permissions.askAsync(Permissions.NOTIFICATIONS),
+    Permissions.askAsync(Permissions.CAMERA),
+    Permissions.askAsync(Permissions.CAMERA_ROLL),
+  ]);
+  if (results.some(({ status }) => status !== 'granted')) {
+    alert('Need NOTIFICATIONS, CAMERA and CAMERA_ROLL Permission.');
+    return
   }
 }
 
@@ -25,10 +28,11 @@ export default class App extends React.Component {
   state = {
     errMsg: '',
     status: READY,
+    list: [],
   }
 
   componentWillMount() {
-    getiOSNotificationPermission();
+    getPermission();
     fetch(config.SERVER_URL + 'mark');
   }
 
@@ -56,13 +60,14 @@ export default class App extends React.Component {
     return httpPostFormData(formData)
   };
 
-  _imageBrowserCallback = (uris) => {
-    if (uris.length === 0) {
+  _handleSendPress = () => {
+    const { list } = this.state;
+    if (list.length === 0) {
       Alert.alert('Nhấn vào hình để chọn nhé');
       return;
     }
     this.setState({ status: LOADING });
-    this._uploadImage(uris)
+    this._uploadImage(list)
       .then(result => {
         if (result.links === '') {
           return Promise.reject('No Result');
@@ -76,7 +81,10 @@ export default class App extends React.Component {
       })
       .then(() => {
         this._pushNotification();
-        this.setState({ status: SUCCESS });
+        this.setState({
+          status: SUCCESS,
+          list: [],
+        });
       })
       .catch((e) => {
         this.setState({
@@ -86,21 +94,60 @@ export default class App extends React.Component {
       })
   }
 
-  _handleOnRefresh = () => {
-    this.setState({ status: SUCCESS }, () => {
-      this.setState({ status: READY });
+  _handleOnPressItem = (uri) => {
+    const { list } = this.state
+    const index = list.indexOf(uri);
+    if (index !== -1) {
+      this.setState({
+        list: [
+          ...list.slice(0, index),
+          ...list.slice(index + 1, list.length),
+        ],
+      })
+    }
+  }
+
+  _handleOnPressAddItem = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
     });
+
+    if (!result.cancelled) {
+      this.setState({
+        list: [ ...this.state.list, result.uri ],
+      })
+    }
+  }
+
+  _handleRefreshPress = () => {
+    this.setState({
+      list: [],
+    })
   }
 
   render() {
     let body;
     switch (this.state.status) {
       case READY:
-        body = <ImageBrowser
-          max={9}
-          callback={this._imageBrowserCallback}
-          onRefresh={this._handleOnRefresh}
-        />;
+        body = (
+          <View style={{ flex: 1, width: '100%' }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              <Button
+                title="Refresh"
+                onPress={this._handleRefreshPress}
+              />
+              <Button
+                title="Gửi"
+                onPress={this._handleSendPress}
+              />
+            </View>
+            <ImageBrowser
+              list={this.state.list}
+              onPressItem={this._handleOnPressItem}
+              onPressAddItem={this._handleOnPressAddItem}
+            />
+          </View>
+        );
         break;
       case LOADING:
         body = <ActivityIndicator />
@@ -120,6 +167,8 @@ export default class App extends React.Component {
 
     return (
       <View style={styles.container}>
+        <View style={{ height: Constants.statusBarHeight }}></View>
+        <KeepAwake />
         {body}
       </View>
     );
