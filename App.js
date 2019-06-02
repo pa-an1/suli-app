@@ -1,7 +1,7 @@
 import React from 'react';
 import { CameraRoll, ActivityIndicator, Text, View, Button, ScrollView, Alert } from 'react-native';
 import { StyleSheet } from 'react-native';
-import { KeepAwake, ImagePicker, Notifications, Permissions, Constants } from 'expo';
+import { KeepAwake, ImagePicker, Notifications, Permissions, Constants, Font } from 'expo';
 
 import ImageBrowser from './ImageBrowser';
 import { httpPostFormData } from './services/http-requests';
@@ -34,6 +34,9 @@ export default class App extends React.Component {
   componentWillMount() {
     getPermission();
     fetch(config.SERVER_URL + 'mark');
+    Font.loadAsync({
+      font: require('./assets/font.ttf'),
+    });
   }
 
   _pushNotification = () => {

@@ -8,7 +8,7 @@ const TYPE_ADD_ITEM = 1;
 
 class Item extends PureComponent {
   static propTypes = {
-    uri: PropTypes.object.isRequired,
+    uri: PropTypes.string.isRequired,
     onPressItem: PropTypes.func.isRequired,
     stt: PropTypes.number.isRequired,
   }
