@@ -1,7 +1,12 @@
 import React from 'react';
 import { CameraRoll, ActivityIndicator, Text, View, Button, ScrollView, Alert } from 'react-native';
 import { StyleSheet } from 'react-native';
-import { KeepAwake, ImagePicker, Notifications, Permissions, Constants, Font } from 'expo';
+import { Notifications } from 'expo';
+import KeepAwake from 'expo-keep-awake';
+import * as Font from 'expo-font';
+import Constants from 'expo-constants';
+import * as ImagePicker from 'expo-image-picker';
+import * as Permissions from 'expo-permissions';
 
 import ImageBrowser from './ImageBrowser';
 import { httpPostFormData } from './services/http-requests';
