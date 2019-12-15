@@ -1,5 +1,5 @@
 import React from 'react';
-import { CameraRoll, ActivityIndicator, Text, View, Button, ScrollView, Alert } from 'react-native';
+import { CameraRoll, ActivityIndicator, Text, TextInput, View, Button, ScrollView, Alert } from 'react-native';
 import { StyleSheet } from 'react-native';
 import { Notifications } from 'expo';
 import KeepAwake from 'expo-keep-awake';
@@ -34,7 +34,10 @@ export default class App extends React.Component {
     errMsg: '',
     status: READY,
     list: [],
+    mode: 'price',
+    price: '100',
   }
+  priceInput = React.createRef();
 
   componentWillMount() {
     getPermission();
@@ -55,6 +58,7 @@ export default class App extends React.Component {
   };
 
   _uploadImage = (uris) => {
+    const { mode, price } = this.state;
     const formData = new FormData();
     for (let i = 0; i < uris.length; i++) {
       const stt = i + 1;
@@ -64,6 +68,9 @@ export default class App extends React.Component {
         name: stt + '.jpg',
       };
       formData.append('upload[]', data, stt + '.jpg');
+      if (mode === 'price') {
+        formData.append('price', price);
+      }
     }
     return httpPostFormData(formData)
   };
@@ -134,6 +141,7 @@ export default class App extends React.Component {
   }
 
   render() {
+    const { mode, price } = this.state;
     let body;
     switch (this.state.status) {
       case READY:
@@ -176,6 +184,27 @@ export default class App extends React.Component {
     return (
       <View style={styles.container}>
         <View style={{ height: Constants.statusBarHeight }}></View>
+        <View style={styles.modeBar}>
+          <Button
+            title='Đánh số'
+            disabled={mode === 'mark'}
+            onPress={() => this.setState({ mode: 'mark' })}
+          />
+          <Button
+            title='Đánh giá tiền'
+            disabled={mode === 'price'}
+            onPress={() => {
+              this.priceInput.current.focus();
+              this.setState({ mode: 'price' })}
+            }
+          />
+          <TextInput
+            ref={this.priceInput}
+            style={[ styles.input, { opacity: mode === 'price' ? 1 : 0 } ]}
+            value={price}
+            onChangeText={value => this.setState({ price: value })}
+          />
+        </View>
         <KeepAwake />
         {body}
       </View>
@@ -186,7 +215,19 @@ export default class App extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
+  modeBar: {
+    flexDirection: 'row',
+    height: 60,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
+  input: {
+    flex: 1,
+    height: 50,
+    marginHorizontal: 10,
+    padding: 5,
+    fontSize: 20,
+    backgroundColor: 'gray',
+  }
 });

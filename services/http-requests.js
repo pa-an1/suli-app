@@ -13,7 +13,9 @@ const _http = ({ method, headers, data }) => {
     body: data,
   };
 
-  return fetch(config.SERVER_URL + 'upload', options)
+  const path = data._parts[data._parts.length - 1][0] === 'price' ? 'upload-price' : 'upload';
+
+  return fetch(config.SERVER_URL + path, options)
     .then((res) => res.json())
     .then((data) => {
       // eslint-disable-next-line
