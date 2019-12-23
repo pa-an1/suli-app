@@ -141,7 +141,6 @@ const styles = StyleSheet.create({
     right: 10,
     fontSize: 28,
     fontWeight: 'bold',
-    fontFamily: 'font',
     color: '#F8A1B9',
   },
 });

@@ -1,112 +1,46 @@
 import React from 'react';
-import { CameraRoll, ActivityIndicator, Text, TextInput, View, Button, ScrollView, Alert } from 'react-native';
+import { TextInput, View, Button, Alert } from 'react-native';
 import { StyleSheet } from 'react-native';
-import { Notifications } from 'expo';
-import KeepAwake from 'expo-keep-awake';
-import * as Font from 'expo-font';
 import Constants from 'expo-constants';
 import * as ImagePicker from 'expo-image-picker';
 import * as Permissions from 'expo-permissions';
 
 import ImageBrowser from './ImageBrowser';
-import { httpPostFormData } from './services/http-requests';
-import config from './config';
-
-const READY = 0;
-const LOADING = 1;
-const ERROR = 2;
-const SUCCESS = 3;
+import ImageCapture from './ImageCapture';
 
 async function getPermission() {
   const results = await Promise.all([
-    Permissions.askAsync(Permissions.NOTIFICATIONS),
     Permissions.askAsync(Permissions.CAMERA),
     Permissions.askAsync(Permissions.CAMERA_ROLL),
   ]);
   if (results.some(({ status }) => status !== 'granted')) {
-    alert('Need NOTIFICATIONS, CAMERA and CAMERA_ROLL Permission.');
+    alert('Need CAMERA and CAMERA_ROLL Permission.');
     return
   }
 }
 
 export default class App extends React.Component {
   state = {
-    errMsg: '',
-    status: READY,
     list: [],
     mode: 'price',
     price: '100',
+    running: false,
+    xPercent: '20',
+    yPercent: '40',
   }
   priceInput = React.createRef();
 
   componentWillMount() {
     getPermission();
-    fetch(config.SERVER_URL + 'mark');
-    Font.loadAsync({
-      font: require('./assets/font.ttf'),
-    });
   }
 
-  _pushNotification = () => {
-    const localNotification = {
-      title: 'Đánh số xong!',
-      body: 'Đánh số cho hình xong rồi nhé, hình ở trong album đó hehe!!',
-      android: { sound: true },
-      ios: { sound: true },
-    };
-    Notifications.presentLocalNotificationAsync(localNotification);
-  };
-
-  _uploadImage = (uris) => {
-    const { mode, price } = this.state;
-    const formData = new FormData();
-    for (let i = 0; i < uris.length; i++) {
-      const stt = i + 1;
-      const data = {
-        uri: uris[ i ],
-        type: 'image/jpeg',
-        name: stt + '.jpg',
-      };
-      formData.append('upload[]', data, stt + '.jpg');
-      if (mode === 'price') {
-        formData.append('price', price);
-      }
-    }
-    return httpPostFormData(formData)
-  };
-
-  _handleSendPress = () => {
+  _handleSendPress = async () => {
     const { list } = this.state;
     if (list.length === 0) {
       Alert.alert('Nhấn vào hình để chọn nhé');
       return;
     }
-    this.setState({ status: LOADING });
-    this._uploadImage(list)
-      .then(result => {
-        if (result.links === '') {
-          return Promise.reject('No Result');
-        }
-        const urls = result.links.split(',');
-        const promises = [];
-        for (var i = 0; i < urls.length; i++) {
-          promises.push(CameraRoll.saveToCameraRoll(config.SERVER_URL + urls[ i ], 'photo'));
-        }
-        return Promise.all(promises);
-      })
-      .then(() => {
-        this._pushNotification();
-        this.setState({
-          status: SUCCESS,
-          list: [],
-        });
-      })
-      .catch((e) => {
-        this.setState({
-          errMsg: JSON.stringify(e),
-          status: ERROR,
-        });
-      })
+    this.setState({ running: true });
   }
 
   _handleOnPressItem = (uri) => {
@@ -140,47 +74,23 @@ export default class App extends React.Component {
     })
   }
 
-  render() {
-    const { mode, price } = this.state;
-    let body;
-    switch (this.state.status) {
-      case READY:
-        body = (
-          <View style={{ flex: 1, width: '100%' }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <Button
-                title="Refresh"
-                onPress={this._handleRefreshPress}
-              />
-              <Button
-                title="Gửi"
-                onPress={this._handleSendPress}
-              />
-            </View>
-            <ImageBrowser
-              list={this.state.list}
-              onPressItem={this._handleOnPressItem}
-              onPressAddItem={this._handleOnPressAddItem}
-            />
-          </View>
-        );
-        break;
-      case LOADING:
-        body = <ActivityIndicator />
-        break;
-      case ERROR:
-        body = <ScrollView><Text>{this.state.errMsg}</Text></ScrollView>
-        break;
-      case SUCCESS:
-        body = <Button
-          title={'Tiếp tục'}
-          onPress={() => {this.setState({ status: READY })}}
-        />
-        break;
-      default:
-        break;
-    }
+  _handleOnDone = () => {
+    this.setState({ list: [], running: false });
+  }
 
+  render() {
+    const { list, mode, price, running, xPercent, yPercent } = this.state;
+    if (running) {
+      return <ImageCapture
+        ref={ele => {this.imgCapture = ele}}
+        list={list}
+        drawMode={mode}
+        price={price}
+        xPercent={xPercent}
+        yPercent={yPercent}
+        onDone={this._handleOnDone}
+      />
+    }
     return (
       <View style={styles.container}>
         <View style={{ height: Constants.statusBarHeight }}></View>
@@ -188,14 +98,14 @@ export default class App extends React.Component {
           <Button
             title='Đánh số'
             disabled={mode === 'mark'}
-            onPress={() => this.setState({ mode: 'mark' })}
+            onPress={() => this.setState({ mode: 'mark', xPercent: '10' })}
           />
           <Button
             title='Đánh giá tiền'
             disabled={mode === 'price'}
             onPress={() => {
               this.priceInput.current.focus();
-              this.setState({ mode: 'price' })}
+              this.setState({ mode: 'price', xPercent: '20' })}
             }
           />
           <TextInput
@@ -205,8 +115,35 @@ export default class App extends React.Component {
             onChangeText={value => this.setState({ price: value })}
           />
         </View>
-        <KeepAwake />
-        {body}
+        <View style={styles.modeBar}>
+          <TextInput
+            style={styles.input}
+            value={xPercent}
+            onChangeText={value => this.setState({ xPercent: value })}
+          />
+          <TextInput
+            style={styles.input}
+            value={yPercent}
+            onChangeText={value => this.setState({ yPercent: value })}
+          />
+        </View>
+        <View style={{ flex: 1, width: '100%' }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <Button
+              title="Refresh"
+              onPress={this._handleRefreshPress}
+            />
+            <Button
+              title="Gửi"
+              onPress={this._handleSendPress}
+            />
+          </View>
+          <ImageBrowser
+            list={this.state.list}
+            onPressItem={this._handleOnPressItem}
+            onPressAddItem={this._handleOnPressAddItem}
+          />
+        </View>
       </View>
     );
   }
