@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
-import { CameraRoll, StyleSheet, Image, Button, View, Platform } from 'react-native';
+import { StyleSheet, Image, View, Platform } from 'react-native';
 import ExpoTHREE, { THREE } from 'expo-three';
 import GLView from './GLView';
 import { captureRef } from 'react-native-view-shot';
+import * as MediaLibrary from 'expo-media-library';
 
 const localFont = require('./assets/font2.json')
 
@@ -126,7 +126,7 @@ export default class ImageCapture extends Component {
       await this._setupBackground(imgUri, text);
       await sleep(3000);
       const glUri = await this.glView.takeSnapshotAsync();
-      await CameraRoll.saveToCameraRoll(glUri, 'photo');
+      await MediaLibrary.saveToLibraryAsync(glUri);
     }
     onDone();
   }
