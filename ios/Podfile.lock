@@ -92,6 +92,8 @@ PODS:
     - React/Core
     - React/fishhook
     - React/RCTBlob
+  - RNCAsyncStorage (1.9.0):
+    - React
   - RNGestureHandler (1.4.1):
     - React
   - RNReanimated (1.3.2):
@@ -145,6 +147,7 @@ DEPENDENCIES:
   - React/RCTText (from `../node_modules/react-native`)
   - React/RCTVibration (from `../node_modules/react-native`)
   - React/RCTWebSocket (from `../node_modules/react-native`)
+  - "RNCAsyncStorage (from `../node_modules/@react-native-community/async-storage`)"
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler/RNGestureHandler.podspec`)
   - RNReanimated (from `../node_modules/react-native-reanimated/RNReanimated.podspec`)
   - RNScreens (from `../node_modules/react-native-screens`)
@@ -210,6 +213,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native"
   react-native-cameraroll:
     :path: "../node_modules/@react-native-community/cameraroll"
+  RNCAsyncStorage:
+    :path: "../node_modules/@react-native-community/async-storage"
   RNGestureHandler:
     :podspec: "../node_modules/react-native-gesture-handler/RNGestureHandler.podspec"
   RNReanimated:
@@ -273,6 +278,7 @@ SPEC CHECKSUMS:
   glog: aefd1eb5dda2ab95ba0938556f34b98e2da3a60d
   React: 36d0768f9e93be2473b37e7fa64f92c1d5341eef
   react-native-cameraroll: dbda741db5dadcdcf738e55a1fd565c307943bca
+  RNCAsyncStorage: 453cd7c335ec9ba3b877e27d02238956b76f3268
   RNGestureHandler: 4cb47a93019c1a201df2644413a0a1569a51c8aa
   RNReanimated: 5d148a7f55ebf47055ea55f51f5dc7a827dc9547
   RNScreens: f28b48b8345f2f5f39ed6195518291515032a788
@@ -290,6 +296,6 @@ SPEC CHECKSUMS:
   UMTaskManagerInterface: 1e70fe58b872355f0ecb44fb81bb1a16484047f0
   yoga: 684513b14b03201579ba3cee20218c9d1298b0cc
 
-PODFILE CHECKSUM: e8fa5112fe85794017ac511931ea1094d99bcf4d
+PODFILE CHECKSUM: 5fb8ebc727b75e323e4b3b43fb1962d5f4437fae
 
 COCOAPODS: 1.8.4

@@ -7,10 +7,28 @@ import Constants from 'expo-constants';
 import * as ImagePicker from 'expo-image-picker';
 import * as Permissions from 'expo-permissions';
 import CameraRoll from "@react-native-community/cameraroll";
+import AsyncStorage from '@react-native-community/async-storage';
 
 import ImageBrowser from './ImageBrowser';
 import { httpPostFormData } from './services/http-requests';
 import config from './config';
+
+const storeImageNumber = async (number) => {
+  try {
+    await AsyncStorage.setItem('@image', number)
+  } catch (e) {
+    Alert.alert(JSON.stringify(e))
+  }
+}
+
+const getImageNumber = async () => {
+  try {
+    const value = await AsyncStorage.getItem('@image')
+    return value
+  } catch(e) {
+    Alert.alert(JSON.stringify(e))
+  }
+}
 
 YellowBox.ignoreWarnings([
   'The KeepAwake component has been deprecated',
@@ -74,6 +92,7 @@ export default class App extends React.Component {
       Alert.alert('Nhấn vào hình để chọn nhé');
       return;
     }
+    storeImageNumber(list.length.toString())
     this.setState({ status: LOADING });
     this._uploadImage(list)
       .then(result => {
@@ -94,7 +113,6 @@ export default class App extends React.Component {
         });
       })
       .catch((e) => {
-        console.log(e)
         this.setState({
           errMsg: JSON.stringify(e),
           status: ERROR,
@@ -133,6 +151,28 @@ export default class App extends React.Component {
     })
   }
 
+  _handleDownloadPress = async () => {
+    try {
+      let imageNumber = await getImageNumber();
+      if (!imageNumber) {
+        Alert.alert('Không có hình ảnh ở lần gửi trước.');
+        return
+      }
+      imageNumber = parseInt(imageNumber)
+      const promises = [];
+      this.setState({ status: LOADING });
+      for (let i = 1; i <= imageNumber; i++) {
+        promises.push(CameraRoll.saveToCameraRoll(`${config.SERVER_URL}output/do-mac-nha-${i}.jpg`, 'photo'));
+      }
+      await Promise.all(promises)
+      Alert.alert('Đã tải xong.');
+      this.setState({ status: SUCCESS });
+    } catch (e) {
+      Alert.alert('Không có hình ảnh ở lần gửi trước.');
+      this.setState({ status: SUCCESS });
+    }
+  }
+
   render() {
     const { mode, price } = this.state;
     let body;
@@ -144,6 +184,10 @@ export default class App extends React.Component {
               <Button
                 title="Refresh"
                 onPress={this._handleRefreshPress}
+              />
+              <Button
+                title="Tải về lần trước"
+                onPress={this._handleDownloadPress}
               />
               <Button
                 title="Gửi"
