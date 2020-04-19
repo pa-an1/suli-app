@@ -1,7 +1,6 @@
 import React from 'react';
-import { CameraRoll, ActivityIndicator, Text, TextInput, View, Button, ScrollView, Alert } from 'react-native';
+import { ActivityIndicator, Text, TextInput, View, Button, ScrollView, Alert, YellowBox } from 'react-native';
 import { StyleSheet } from 'react-native';
-import { Notifications } from 'expo';
 import KeepAwake from 'expo-keep-awake';
 import * as Font from 'expo-font';
 import Constants from 'expo-constants';
@@ -12,6 +11,10 @@ import ImageBrowser from './ImageBrowser';
 import { httpPostFormData } from './services/http-requests';
 import config from './config';
 
+YellowBox.ignoreWarnings([
+  'The KeepAwake component has been deprecated',
+]);
+
 const READY = 0;
 const LOADING = 1;
 const ERROR = 2;
@@ -19,12 +22,11 @@ const SUCCESS = 3;
 
 async function getPermission() {
   const results = await Promise.all([
-    Permissions.askAsync(Permissions.NOTIFICATIONS),
     Permissions.askAsync(Permissions.CAMERA),
     Permissions.askAsync(Permissions.CAMERA_ROLL),
   ]);
   if (results.some(({ status }) => status !== 'granted')) {
-    alert('Need NOTIFICATIONS, CAMERA and CAMERA_ROLL Permission.');
+    alert('Need CAMERA and CAMERA_ROLL Permission.');
     return
   }
 }
@@ -34,7 +36,7 @@ export default class App extends React.Component {
     errMsg: '',
     status: READY,
     list: [],
-    mode: 'price',
+    mode: 'mark',
     price: '100',
   }
   priceInput = React.createRef();
@@ -46,16 +48,6 @@ export default class App extends React.Component {
       font: require('./assets/font.ttf'),
     });
   }
-
-  _pushNotification = () => {
-    const localNotification = {
-      title: 'Đánh số xong!',
-      body: 'Đánh số cho hình xong rồi nhé, hình ở trong album đó hehe!!',
-      android: { sound: true },
-      ios: { sound: true },
-    };
-    Notifications.presentLocalNotificationAsync(localNotification);
-  };
 
   _uploadImage = (uris) => {
     const { mode, price } = this.state;
@@ -95,13 +87,13 @@ export default class App extends React.Component {
         return Promise.all(promises);
       })
       .then(() => {
-        this._pushNotification();
         this.setState({
           status: SUCCESS,
           list: [],
         });
       })
       .catch((e) => {
+        console.log(e)
         this.setState({
           errMsg: JSON.stringify(e),
           status: ERROR,
