@@ -32,4 +32,6 @@ target 'suli' do
 
   use_unimodules!
 
+  pod 'react-native-cameraroll', :path => '../node_modules/@react-native-community/cameraroll'
+
 end

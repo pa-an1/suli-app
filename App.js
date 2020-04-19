@@ -6,6 +6,7 @@ import * as Font from 'expo-font';
 import Constants from 'expo-constants';
 import * as ImagePicker from 'expo-image-picker';
 import * as Permissions from 'expo-permissions';
+import CameraRoll from "@react-native-community/cameraroll";
 
 import ImageBrowser from './ImageBrowser';
 import { httpPostFormData } from './services/http-requests';
