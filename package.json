@@ -24,7 +24,7 @@
     "expo-permissions": "~8.0.0",
     "expo-three": "github:pav-an/expo-three#v1",
     "react-native-view-shot": "3.0.2",
-    "three": "^0.108.0"
+    "three": "^0.125.0"
   },
   "devDependencies": {
     "@babel/core": "~7.6.0",
